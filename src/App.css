@@ -1,38 +1,109 @@
-.App {
-  text-align: center;
+* {
+    padding: 0;
+    margin: 0; 
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body {
+    background-image: url("https://cutewallpaper.org/28/computer-pattern-wallpaper/1609221363.jpg");
+    /* background-image: url("https://cutewallpaper.org/21/downloads-wallpaper/Desktop-Wallpaper-Downloads-From-Lea-Carey-Day-Six-Design-.jpg") */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.page-title {
+    margin: 0.75em 0;
+    width: 250px;
+    text-align: center;
+    font-size: 60px;
+    color: #7A4D9F;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.TodoWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
 }
 
-.App-link {
-  color: #61dafb;
+.todo-input {
+    width: 410px;
+    overflow: hidden;
+    padding: 6px;
+    font-style: italic;
+    border: 2px solid #5B2C6F;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.add-input {
+    color: #A8DACD;
+    background-color: #7A4D9F;
+}
+
+.edit-input {
+    color: #7A4D9F;
+    background-color: #A8DACD;
+    font-weight: 600;
+}
+
+::placeholder {
+    color: #A8DACD;
+    font-style: italic;
+    opacity: 0.75;
+}
+
+.todo-input::placeholder {
+    color: #A8DACD;
+}
+
+.edit-input::placeholder {
+    color: #7A4D9F;
+}
+
+.todo-add-btn {
+    width: 80px;
+    padding: 6px;
+    margin-bottom: 2em;
+    color: #5B2C6F;
+    font-weight: bold;
+    background-color: #A8DACD;
+    border: 2px solid #5B2C6F;
+}
+
+.todo-edit-btn {
+    width: 80px;
+    padding: 6px;
+    margin: 0.5em 0;
+    color: #A8DACD;
+    font-weight: bold;
+    background-color: #5B2C6F;
+    border: 2px solid #A8DACD;
+}
+
+.Todo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px;
+    width: 490px;
+    background-color: #7A4D9F;
+    color: #A8DACD;
+    font-weight: bold;
+    border: 3px solid #5B2C6F;
+}
+
+.todo-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 2px;
+}
+
+.todo-control-icons-div {
+    display: flex;
+}
+
+.todo-control-icons {
+    padding: 0 4px;
+}
+
+.completed {
+    text-decoration: line-through;
+    font-style: italic;
+    font-weight: 400;
 }
