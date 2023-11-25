@@ -24,21 +24,21 @@ export const TodoWrapper = () => {
         );
     }
 
-    const deleteTodo = id => {
-        setTodos(todos.filter(
-            todo => todo.id !== id)
-        );
-    }
-
-    const editTodo = id => {
+    const toggleIsEditing = id => {
         setTodos(todos.map(
             todo => todo.id === id ? {...todo, isEditing: !todo.isEditing} : todo)
         );
     }
 
-    const editTask = (id, updatedTask) => {
+    const updateTodo = (id, updatedTask) => {
         setTodos(todos.map(
             todo => todo.id === id ? {...todo, task: updatedTask, isEditing: !todo.isEditing} : todo)
+        );
+    }
+
+    const deleteTodo = id => {
+        setTodos(todos.filter(
+            todo => todo.id !== id)
         );
     }
 
@@ -57,12 +57,12 @@ export const TodoWrapper = () => {
                         task={todo} 
                         key={index} 
                         toggleComplete={toggleComplete}
+                        toggleIsEditing={toggleIsEditing}
                         deleteTodo={deleteTodo} 
-                        editTodo={editTodo}
                     /> 
                 ) : (
                     <EditTodoForm 
-                        editTodo={editTask} 
+                        updateTodo={updateTodo} 
                         task={todo}
                     /> 
                 )
