@@ -1,6 +1,6 @@
 # TODO App 
 
-A beginner project to learn React.
+A beginner-level project to learn React.
 
 #### How to run:
 1. Clone/download the repository.
