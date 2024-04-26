@@ -1,61 +1,52 @@
 module Parsers (progParser) where
 
-import Types (Args(..))
-import Control.Applicative ((<**>))
-import qualified Options.Applicative as Options
+import Options.Applicative
 
-progParser :: Options.ParserInfo Args
-progParser = Options.info
-  (Args
-    <$> commandParser
-    <*> filePathParser
-    <*> todoTaskParser
-    <*> todoIndexIParser
-    <*> todoIndexJParser
-    <**> Options.helper)
-  (Options.fullDesc 
-    <> Options.header "A simple TODO CLI application"
-    <> Options.progDesc "Manage your TODO lists as text files.")
+import Types (Command(..))
 
-commandParser :: Options.Parser String
-commandParser = Options.option
-  Options.str (
-    Options.short 'c'
-    <> Options.long "cmd"
-    <> Options.metavar "COMMAND"
-    <> Options.help "add | view | update | remove | bump | move") 
+progParser :: ParserInfo Command
+progParser = info
+  (commandParser <**> helper)
+  (fullDesc 
+    <> header "A basic TODO application"
+    <> progDesc "Manage your TODO lists as text files")
 
-filePathParser :: Options.Parser String
-filePathParser = Options.option
-  Options.str (  
-    Options.short 'f'
-    <> Options.long "file"
-    <> Options.metavar "FILE"
-    <> Options.help "Path of the file to add TODO task to")
+commandParser :: Parser Command
+commandParser = subparser $
+  command "add"    (info addParser    (progDesc "Add a task to TODO list")) <>
+  command "view"   (info viewParser   (progDesc "View TODO list"))          <>
+  command "update" (info updateParser (progDesc "Update ith task in TODO list"))   <>
+  command "remove" (info removeParser (progDesc "Remove ith task from TODO list")) <>
+  command "bump"   (info bumpParser   (progDesc "Bump ith task to the top of TODO list")) <>
+  command "move"   (info moveParser   (progDesc "Move ith task in TODO list to jth position"))
 
-todoTaskParser :: Options.Parser String
-todoTaskParser = Options.option
-  Options.str (  
-    Options.short 't'
-    <> Options.long "task"
-    <> Options.metavar "TASK"
-    <> Options.value ""
-    <> Options.help "Task to add to TODO list")
+addParser :: Parser Command
+addParser = Add 
+  <$> argument str (metavar "FILE") 
+  <*> argument str (metavar "TASK")
 
-todoIndexIParser :: Options.Parser Int
-todoIndexIParser = Options.option
-  Options.auto (  
-    Options.short 'i'
-    <> Options.long "index-i"
-    <> Options.metavar "INDEX i"
-    <> Options.value 0
-    <> Options.help "Index of task to update / remove / bump / move")
+viewParser :: Parser Command
+viewParser = View 
+  <$> argument str (metavar "FILE")
 
-todoIndexJParser :: Options.Parser Int
-todoIndexJParser = Options.option
-  Options.auto (  
-    Options.short 'j'
-    <> Options.long "index-j"
-    <> Options.metavar "INDEX j"
-    <> Options.value 0
-    <> Options.help "Index at which to move ith task in TODO list")
+updateParser :: Parser Command
+updateParser = Update 
+  <$> argument str  (metavar "FILE") 
+  <*> argument auto (metavar "INDEX") 
+  <*> argument str  (metavar "TASK")
+
+removeParser :: Parser Command
+removeParser = Remove 
+  <$> argument str  (metavar "FILE") 
+  <*> argument auto (metavar "INDEX")
+
+bumpParser :: Parser Command
+bumpParser = Bump 
+  <$> argument str  (metavar "FILE")
+  <*> argument auto (metavar "INDEX")
+
+moveParser :: Parser Command
+moveParser = Move 
+  <$> argument str  (metavar "FILE")
+  <*> argument auto (metavar "FROM INDEX") 
+  <*> argument auto (metavar "TO INDEX `j`")
