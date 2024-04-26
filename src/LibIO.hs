@@ -17,7 +17,7 @@ fetchArgs = execParser progParser
 
 add :: Action
 add Add {..} = do
-  appendFile file $ "– " <> task ++ "\n"
+  appendFile file $ "– " <> task <> "\n"
   putStrLn $ "Task added to the list."
 
 view :: Action
@@ -59,17 +59,7 @@ remove Remove {..} = do
     else putStrLn "Error: Index `i` out-of-bounds"
 
 bump :: Action
-bump Bump {..} = do
-  contents <- readFile file
-  let todoTasks  = lines contents
-      tasksCount = length todoTasks
-  if i > 0 && i <= tasksCount
-    then do
-      let bumpedTask = todoTasks !! (i - 1)
-          newTodoTasks = bumpedTask : delete bumpedTask todoTasks
-      updateChangesToFile file newTodoTasks
-      putStrLn $ "Task #" <> show i <> " bumped to top of the list."
-    else putStrLn "Error: Index `i` out-of-bounds"
+bump Bump {..} = move (Move file i 1)
 
 move :: Action
 move Move {..} = do
