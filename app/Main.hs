@@ -2,12 +2,16 @@
 
 module Main where
 
-import Types (Args(..))
-import LibIO (cmdMap, fetchArgs)
+import Types (Command(..))
+import LibIO (fetchArgs, add, view, update, remove, bump, move)
 
 main :: IO ()
 main = do
-  args@Args {..} <- fetchArgs
-  case lookup cmd cmdMap of
-    Just action -> action args
-    Nothing -> putStrLn "Invalid command/args! Exiting the program."
+  args <- fetchArgs
+  case args of
+    Add    {} -> add args
+    View   {} -> view args
+    Update {} -> update args
+    Remove {} -> remove args
+    Bump   {} -> bump args
+    Move   {} -> move args
