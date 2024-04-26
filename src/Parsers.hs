@@ -12,13 +12,13 @@ progParser = info
     <> progDesc "Manage your TODO lists as text files")
 
 commandParser :: Parser Command
-commandParser = subparser $
-  command "add"    (info addParser    (progDesc "Add a task to TODO list")) <>
-  command "view"   (info viewParser   (progDesc "View TODO list"))          <>
-  command "update" (info updateParser (progDesc "Update ith task in TODO list"))   <>
-  command "remove" (info removeParser (progDesc "Remove ith task from TODO list")) <>
-  command "bump"   (info bumpParser   (progDesc "Bump ith task to the top of TODO list")) <>
-  command "move"   (info moveParser   (progDesc "Move ith task in TODO list to jth position"))
+commandParser = hsubparser $
+  command "add"    (info addParser    (progDesc "Add task to TODO file")) <>
+  command "view"   (info viewParser   (progDesc "View tasks in TODO file")) <>
+  command "update" (info updateParser (progDesc "Update task in TODO file")) <>
+  command "remove" (info removeParser (progDesc "Remove task from TODO file")) <>
+  command "bump"   (info bumpParser   (progDesc "Bump task to the top in TODO file")) <>
+  command "move"   (info moveParser   (progDesc "Move task to a different position in TODO file"))
 
 addParser :: Parser Command
 addParser = Add 
@@ -48,5 +48,5 @@ bumpParser = Bump
 moveParser :: Parser Command
 moveParser = Move 
   <$> argument str  (metavar "FILE")
-  <*> argument auto (metavar "FROM INDEX") 
-  <*> argument auto (metavar "TO INDEX `j`")
+  <*> argument auto (metavar "FROM_INDEX") 
+  <*> argument auto (metavar "TO_INDEX")

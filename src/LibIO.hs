@@ -17,7 +17,7 @@ fetchArgs = execParser progParser
 
 add :: Action
 add Add {..} = do
-  appendFile file $ "– " ++ task ++ "\n"
+  appendFile file $ "– " <> task ++ "\n"
   putStrLn $ "Task added to the list."
 
 view :: Action
@@ -40,7 +40,7 @@ update Update {..} = do
   if i > 0 && i <= tasksCount
     then do
       let newTodoTasks = take (i - 1) todoTasks 
-                      <> ["– " ++ task]
+                      <> ["– " <> task]
                       <> drop i todoTasks
       updateChangesToFile file newTodoTasks
       putStrLn $ "Task #" <> show i <> " updated."
