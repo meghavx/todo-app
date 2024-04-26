@@ -1,15 +1,12 @@
-module Types (
-  Action,
-  Args(..)
-) where
+module Types (Command(..), Action) where
 
--- Type to store arguments provided by the user
-data Args = Args 
-  { cmd    :: String
-  , file   :: FilePath
-  , task   :: String
-  , index1 :: Int
-  , index2 :: Int
-} deriving Show
+type Action = Command -> IO ()
 
-type Action = Args -> IO ()
+data Command
+  = Add    { file :: FilePath, task :: String }
+  | View   { file :: FilePath  }
+  | Remove { file :: FilePath, i :: Int  }
+  | Bump   { file :: FilePath, i :: Int  }
+  | Move   { file :: FilePath, i :: Int, j :: Int }
+  | Update { file :: FilePath, i :: Int, task :: String }
+  deriving Show
