@@ -1,6 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module LibIO (cmdMap, fetchArgs) where
+module LibIO (
+  fetchArgs, add, view, update, remove, bump, move
+) where
 
 import System.IO
 import Data.List
@@ -8,26 +10,18 @@ import System.Directory
 import Options.Applicative (execParser)
 
 import Parsers (progParser)
-import Types (Args(..), Action)
+import Types (Command(..), Action)
 
-fetchArgs :: IO Args
+fetchArgs :: IO Command
 fetchArgs = execParser progParser
 
-cmdMap :: [(String, Action)]
-cmdMap =  [("add",  add)
-          ,("view", view)
-          ,("bump", bump)
-          ,("move", move)
-          ,("update", update)
-          ,("remove", remove)]
-
 add :: Action
-add Args {..} = do
+add Add {..} = do
   appendFile file $ "– " ++ task ++ "\n"
   putStrLn $ "Task added to the list."
 
 view :: Action
-view Args {..} = do
+view View {..} = do
   contents <- readFile file
   let todoTasks = lines contents
   case length todoTasks of
@@ -38,63 +32,63 @@ view Args {..} = do
           prependSNos n item = " " <> show n <> " " <> item
       putStrLn $ unlines numberedTasks
 
-bump :: Action
-bump Args {..} = do
-  contents <- readFile file
-  let todoTasks = lines contents
-      tasksCount = length todoTasks
-  (case validIndices index1 index2 False tasksCount of
-    Left err -> putStrLn err
-    Right _ -> do
-      let bumpedTask = todoTasks !! (index1 - 1)
-          newTodoTasks = bumpedTask : delete bumpedTask todoTasks
-      updateChangesToFile file newTodoTasks
-      putStrLn $ "Task #" <> show index1 <> " bumped to top of the list.")
-
-move :: Action
-move Args {..} = do
-  contents <- readFile file
-  let todoTasks = lines contents
-      tasksCount = length todoTasks
-  case validIndices index1 index2 True tasksCount of
-    Left e -> putStrLn e
-    Right _ -> do
-      if index1 == index2
-        then putStrLn "No change made; the values provided for i & j are equal."
-        else do
-          let taskToMove = todoTasks !! (index1 - 1)
-              otherTasks = delete taskToMove todoTasks
-              newTodoTasks = take (index2 - 1) otherTasks 
-                          <> [taskToMove]
-                          <> drop (index2 - 1) otherTasks
-          updateChangesToFile file newTodoTasks
-          putStrLn $ "Task #" <> show index1 <> " moved to #" <> show index2 <> "."
-
 update :: Action
-update Args {..} = do
+update Update {..} = do
   contents <- readFile file
-  let todoTasks = lines contents
+  let todoTasks  = lines contents
       tasksCount = length todoTasks
-  case validIndices index1 index2 False tasksCount of
-    Left e -> putStrLn e
-    Right _ -> do
-      let newTodoTasks = take (index1 - 1) todoTasks 
+  if i > 0 && i <= tasksCount
+    then do
+      let newTodoTasks = take (i - 1) todoTasks 
                       <> ["– " ++ task]
-                      <> drop index1 todoTasks
+                      <> drop i todoTasks
       updateChangesToFile file newTodoTasks
-      putStrLn $ "Task #" <> show index1 <> " updated."
+      putStrLn $ "Task #" <> show i <> " updated."
+  else putStrLn "Error: Index `i` out-of-bounds"
 
 remove :: Action
-remove Args {..} = do
+remove Remove {..} = do
   contents <- readFile file
-  let todoTasks = lines contents
+  let todoTasks  = lines contents
       tasksCount = length todoTasks
-  case validIndices index1 index2 False tasksCount of
-    Left e -> putStrLn e
-    Right _ -> do
-      let newTodoTasks = delete (todoTasks !! (index1 - 1)) todoTasks
+  if i > 0 && i <= tasksCount
+    then do
+      let newTodoTasks = delete (todoTasks !! (i - 1)) todoTasks
       updateChangesToFile file newTodoTasks
-      putStrLn $ "Task #" <> show index1 <> " removed from the list."
+      putStrLn $ "Task #" <> show i <> " removed from the list."
+    else putStrLn "Error: Index `i` out-of-bounds"
+
+bump :: Action
+bump Bump {..} = do
+  contents <- readFile file
+  let todoTasks  = lines contents
+      tasksCount = length todoTasks
+  if i > 0 && i <= tasksCount
+    then do
+      let bumpedTask = todoTasks !! (i - 1)
+          newTodoTasks = bumpedTask : delete bumpedTask todoTasks
+      updateChangesToFile file newTodoTasks
+      putStrLn $ "Task #" <> show i <> " bumped to top of the list."
+    else putStrLn "Error: Index `i` out-of-bounds"
+
+move :: Action
+move Move {..} = do
+  contents <- readFile file
+  let todoTasks  = lines contents
+      tasksCount = length todoTasks
+  if i > 0 && i <= tasksCount && j > 0 && j <= tasksCount
+    then do
+      if i == j
+        then putStrLn "No change made; both i & j point to the same position."
+        else do
+          let taskToMove = todoTasks !! (i - 1)
+              otherTasks = delete taskToMove todoTasks
+              newTodoTasks = take (j - 1) otherTasks 
+                          <> [taskToMove]
+                          <> drop (j - 1) otherTasks
+          updateChangesToFile file newTodoTasks
+          putStrLn $ "Task #" <> show i <> " moved to #" <> show j <> "."
+  else putStrLn "`i` or/and index `j` "
 
 -- Helper functions
 displayTodoHeader :: IO ()
@@ -111,13 +105,3 @@ updateChangesToFile file newTodoTasks = do
   hClose tempHandle
   removeFile file
   renameFile tempFile file
-
-validIndices :: Int -> Int -> Bool -> Int -> Either String Bool
-validIndices i j considerJ len = 
-  let withinLowerBound = not considerJ && i > 0 || i > 0 && j > 0
-      withinUpperBound = not considerJ && i <= len || i <= len && j <= len
-  in if withinLowerBound && withinUpperBound
-      then Right True
-      else if not withinLowerBound
-        then Left "Invalid input for indices i and/or j."
-        else Left "Indices i and/or j exceed(s) the length of the list."
