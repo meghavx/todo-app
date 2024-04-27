@@ -44,7 +44,7 @@ update Update {..} = do
                       <> drop i todoTasks
       updateChangesToFile file newTodoTasks
       putStrLn $ "Task #" <> show i <> " updated."
-  else putStrLn "Error: Index `i` out-of-bounds"
+  else putStrLn "Error: Invalid INDEX. You might want to view the list first."
 
 remove :: Action
 remove Remove {..} = do
@@ -56,7 +56,7 @@ remove Remove {..} = do
       let newTodoTasks = delete (todoTasks !! (i - 1)) todoTasks
       updateChangesToFile file newTodoTasks
       putStrLn $ "Task #" <> show i <> " removed from the list."
-    else putStrLn "Error: Index `i` out-of-bounds"
+    else putStrLn "Error: Invalid INDEX. You might want to view the list first."
 
 bump :: Action
 bump Bump {..} = move (Move file i 1)
@@ -78,7 +78,7 @@ move Move {..} = do
                           <> drop (j - 1) otherTasks
           updateChangesToFile file newTodoTasks
           putStrLn $ "Task #" <> show i <> " moved to #" <> show j <> "."
-  else putStrLn "`i` or/and index `j` "
+  else putStrLn "Error: One or both INDEXES are invalid. You might want to view the list first."
 
 -- Helper functions
 displayTodoHeader :: IO ()
