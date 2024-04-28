@@ -8,8 +8,9 @@ progParser :: ParserInfo Command
 progParser = info
   (commandParser <**> helper)
   (fullDesc 
-    <> header "A basic TODO application"
-    <> progDesc "Manage your TODO lists as text files")
+    <> header "A basic command-line TODO application"
+    <> progDesc "Manage your TODO lists as text files."
+    <> footer "For specific command usage, enter: --help or -h <command>")
 
 commandParser :: Parser Command
 commandParser = hsubparser $
