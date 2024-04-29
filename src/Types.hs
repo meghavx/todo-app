@@ -13,6 +13,7 @@ data Command
   | View   { file :: FilePath  }
   | Remove { file :: FilePath, i :: Index  }
   | Done   { file :: FilePath, i :: Index  }
+  | Undone { file :: FilePath, i :: Index  }
   | Bump   { file :: FilePath, i :: Index  }
   | Move   { file :: FilePath, i :: Index, j :: Index }
   | Update { file :: FilePath, i :: Index, task :: Task }

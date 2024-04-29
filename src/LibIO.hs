@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module LibIO (
-  fetchArgs, add, view, update, remove, bump, move, done
+  fetchArgs, add, view, update, remove, bump, move, done, undone
 ) where
 
 import System.IO
@@ -84,6 +84,21 @@ done Done {..} = do
           newTodoTasks = updateTaskHelper todoTasks i taskToMarkAsDone '-'
       updateChangesToFile file newTodoTasks 
       putStrLn $ "Task #" <> show i <> " marked as 'done'."
+    else putStrLn "Error: Invalid INDEX. You might want to view the list first."
+
+undone :: Action
+undone Undone {..} = do
+  (todoTasks, n) <- getTodoTasks file
+  if i > 0 && i <= n
+    then do
+      let concernedTask = todoTasks !! (i - 1)
+      if head concernedTask == '-'
+        then do 
+          let modifiedTask = delete '-' concernedTask
+              newTodoTasks = updateTaskHelper todoTasks i modifiedTask '+'
+          updateChangesToFile file newTodoTasks
+          putStrLn $ "Task #" <> show i <> " restored as undone / yet to be completed."
+        else putStrLn $ "Task #" <> show i <> " is yet to be marked as 'done'; hence is already in the 'undone' state."
     else putStrLn "Error: Invalid INDEX. You might want to view the list first."
 
 setFg :: Color -> Bool -> IO a -> IO a

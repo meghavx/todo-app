@@ -20,7 +20,8 @@ commandParser = hsubparser $
   command "bump"   (info bumpParser   (progDesc "Bump a task to the top")) <>
   command "move"   (info moveParser   (progDesc "Move a task to a different position")) <>
   command "remove" (info removeParser (progDesc "Remove a task")) <>
-  command "done"   (info doneParser   (progDesc "Mark a task as 'done'"))
+  command "done"   (info doneParser   (progDesc "Mark a task as 'done'")) <>
+  command "undone" (info undoneParser (progDesc "Unmark a task previously marked as 'done'"))
 
 addParser :: Parser Command
 addParser = Add 
@@ -55,5 +56,10 @@ removeParser = Remove
 
 doneParser :: Parser Command
 doneParser = Done 
+  <$> argument str  (metavar "FILE")
+  <*> argument auto (metavar "INDEX")
+
+undoneParser :: Parser Command
+undoneParser = Undone 
   <$> argument str  (metavar "FILE")
   <*> argument auto (metavar "INDEX")

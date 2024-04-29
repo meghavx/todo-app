@@ -16,3 +16,4 @@ main = do
     Bump   {} -> Lib.bump args
     Move   {} -> Lib.move args
     Done   {} -> Lib.done args
+    Undone {} -> Lib.undone args
