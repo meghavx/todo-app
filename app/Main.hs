@@ -2,8 +2,8 @@
 
 module Main where
 
-import Types (Command(..))
 import qualified LibIO as Lib
+import           Types (Command(..))
 
 main :: IO ()
 main = do
