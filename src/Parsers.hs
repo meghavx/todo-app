@@ -14,12 +14,13 @@ progParser = info
 
 commandParser :: Parser Command
 commandParser = hsubparser $
-  command "add"    (info addParser    (progDesc "Add task to TODO file")) <>
-  command "view"   (info viewParser   (progDesc "View tasks in TODO file")) <>
-  command "update" (info updateParser (progDesc "Update task in TODO file")) <>
-  command "remove" (info removeParser (progDesc "Remove task from TODO file")) <>
-  command "bump"   (info bumpParser   (progDesc "Bump task to the top in TODO file")) <>
-  command "move"   (info moveParser   (progDesc "Move task to a different position in TODO file"))
+  command "add"    (info addParser    (progDesc "Add a task")) <>
+  command "view"   (info viewParser   (progDesc "View all tasks")) <>
+  command "update" (info updateParser (progDesc "Update a task")) <>
+  command "bump"   (info bumpParser   (progDesc "Bump a task to the top")) <>
+  command "move"   (info moveParser   (progDesc "Move a task to a different position")) <>
+  command "remove" (info removeParser (progDesc "Remove a task")) <>
+  command "done"   (info doneParser   (progDesc "Mark a task as 'done'"))
 
 addParser :: Parser Command
 addParser = Add 
@@ -36,11 +37,6 @@ updateParser = Update
   <*> argument auto (metavar "INDEX") 
   <*> argument str  (metavar "TASK")
 
-removeParser :: Parser Command
-removeParser = Remove 
-  <$> argument str  (metavar "FILE") 
-  <*> argument auto (metavar "INDEX")
-
 bumpParser :: Parser Command
 bumpParser = Bump 
   <$> argument str  (metavar "FILE")
@@ -51,3 +47,13 @@ moveParser = Move
   <$> argument str  (metavar "FILE")
   <*> argument auto (metavar "FROM_INDEX") 
   <*> argument auto (metavar "TO_INDEX")
+
+removeParser :: Parser Command
+removeParser = Remove 
+  <$> argument str  (metavar "FILE") 
+  <*> argument auto (metavar "INDEX")
+
+doneParser :: Parser Command
+doneParser = Done 
+  <$> argument str  (metavar "FILE")
+  <*> argument auto (metavar "INDEX")

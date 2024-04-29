@@ -1,57 +1,50 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module LibIO (
-  fetchArgs, add, view, update, remove, bump, move
+  fetchArgs, add, view, update, remove, bump, move, done
 ) where
 
 import System.IO
-import Data.List
 import System.Directory
+import Data.List (delete)
 import Options.Applicative (execParser)
 
 import Parsers (progParser)
-import Types (Command(..), Action)
+import Types (Command(..), Action, Task, Index)
 
 fetchArgs :: IO Command
 fetchArgs = execParser progParser
 
 add :: Action
 add Add {..} = do
-  appendFile file $ "– " <> task <> "\n"
+  appendFile file $ "+ " <> task <> "\n"
   putStrLn $ "Task added to the list."
 
 view :: Action
 view View {..} = do
-  contents <- readFile file
-  let todoTasks = lines contents
-  case length todoTasks of
+  (todoTasks, n) <- getTodoTasks file
+  case n of
     0 -> putStrLn "Turns out your TODO list is empty!"
     _ -> do
       displayTodoHeader
-      let numberedTasks = zipWith prependSNos [1 :: Int ..] todoTasks
-          prependSNos n item = " " <> show n <> " " <> item
+      let numberedTasks = zipWith prependSerialNos [1..n] todoTasks
+          prependSerialNos n item = " " <> show n <> "| " <> item
       putStrLn $ unlines numberedTasks
 
 update :: Action
 update Update {..} = do
-  contents <- readFile file
-  let todoTasks  = lines contents
-      tasksCount = length todoTasks
-  if i > 0 && i <= tasksCount
+  (todoTasks, n) <- getTodoTasks file
+  if i > 0 && i <= n
     then do
-      let newTodoTasks = take (i - 1) todoTasks 
-                      <> ["– " <> task]
-                      <> drop i todoTasks
+      let newTodoTasks = updateTaskHelper todoTasks i task "+ "
       updateChangesToFile file newTodoTasks
       putStrLn $ "Task #" <> show i <> " updated."
-  else putStrLn "Error: Invalid INDEX. You might want to view the list first."
+    else putStrLn "Error: Invalid INDEX. You might want to view the list first."
 
 remove :: Action
 remove Remove {..} = do
-  contents <- readFile file
-  let todoTasks  = lines contents
-      tasksCount = length todoTasks
-  if i > 0 && i <= tasksCount
+  (todoTasks, n) <- getTodoTasks file
+  if i > 0 && i <= n
     then do
       let newTodoTasks = delete (todoTasks !! (i - 1)) todoTasks
       updateChangesToFile file newTodoTasks
@@ -63,10 +56,8 @@ bump Bump {..} = move (Move file i 1)
 
 move :: Action
 move Move {..} = do
-  contents <- readFile file
-  let todoTasks  = lines contents
-      tasksCount = length todoTasks
-  if i > 0 && i <= tasksCount && j > 0 && j <= tasksCount
+  (todoTasks, n) <- getTodoTasks file
+  if i > 0 && i <= n && j > 0 && j <= n
     then do
       if i == j
         then putStrLn "No change made; both i & j point to the same position."
@@ -78,7 +69,19 @@ move Move {..} = do
                           <> drop (j - 1) otherTasks
           updateChangesToFile file newTodoTasks
           putStrLn $ "Task #" <> show i <> " moved to #" <> show j <> "."
-  else putStrLn "Error: One or both INDEXES are invalid. You might want to view the list first."
+    else putStrLn "Error: One or both INDEXES are invalid. You might want to view the list first."
+
+done :: Action
+done Done {..} = do 
+  (todoTasks, n) <- getTodoTasks file
+  if i > 0 && i <= n
+    then do
+      let taskToMarkAsDone = delete '+' $ todoTasks !! (i - 1)
+          newTodoTasks = updateTaskHelper todoTasks i taskToMarkAsDone "-"
+      updateChangesToFile file newTodoTasks 
+      putStrLn $ "Task #" <> show i <> " marked as 'done'."
+    else putStrLn "Error: Invalid INDEX. You might want to view the list first."
+
 
 -- Helper functions
 displayTodoHeader :: IO ()
@@ -87,6 +90,18 @@ displayTodoHeader = do
   putStrLn "\t|            |"
   putStrLn "\t| TODO Tasks |"
   putStrLn "\t|____________|\n"
+
+getTodoTasks :: FilePath -> IO ([String], Int)
+getTodoTasks file = do
+  contents <- readFile file
+  let todoTasks = lines contents
+  pure (todoTasks, length todoTasks)
+
+updateTaskHelper :: [Task] -> Index -> Task -> String -> [Task]
+updateTaskHelper todoTasks i task prefix = 
+  take (i - 1) todoTasks 
+  <> [prefix <> task]
+  <> drop i todoTasks
 
 updateChangesToFile :: FilePath -> [String] -> IO ()
 updateChangesToFile file newTodoTasks = do
