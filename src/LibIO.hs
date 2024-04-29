@@ -7,17 +7,19 @@ module LibIO (
 import System.IO
 import System.Directory
 import Data.List (delete)
+import System.Console.ANSI
+import Data.Foldable (for_)
 import Options.Applicative (execParser)
 
 import Parsers (progParser)
-import Types (Command(..), Action, Task, Index)
+import Types (Task, Index, Command(..), Action)
 
 fetchArgs :: IO Command
 fetchArgs = execParser progParser
 
 add :: Action
 add Add {..} = do
-  appendFile file $ "+ " <> task <> "\n"
+  appendFile file $ "+" <> task <> "\n"
   putStrLn $ "Task added to the list."
 
 view :: Action
@@ -27,16 +29,18 @@ view View {..} = do
     0 -> putStrLn "Turns out your TODO list is empty!"
     _ -> do
       displayTodoHeader
-      let numberedTasks = zipWith prependSerialNos [1..n] todoTasks
-          prependSerialNos n item = " " <> show n <> "| " <> item
-      putStrLn $ unlines numberedTasks
+      let numberedTasks = zip [1..n] todoTasks
+      for_ numberedTasks $ \(sno, task) -> do
+        putStr $ show sno <> "| "
+        let highlightColor = if head task == '-' then setFg Magenta True else setFg White False
+        (highlightColor . putStrLn . tail) task
 
 update :: Action
 update Update {..} = do
   (todoTasks, n) <- getTodoTasks file
   if i > 0 && i <= n
     then do
-      let newTodoTasks = updateTaskHelper todoTasks i task "+ "
+      let newTodoTasks = updateTaskHelper todoTasks i task '+'
       updateChangesToFile file newTodoTasks
       putStrLn $ "Task #" <> show i <> " updated."
     else putStrLn "Error: Invalid INDEX. You might want to view the list first."
@@ -77,11 +81,18 @@ done Done {..} = do
   if i > 0 && i <= n
     then do
       let taskToMarkAsDone = delete '+' $ todoTasks !! (i - 1)
-          newTodoTasks = updateTaskHelper todoTasks i taskToMarkAsDone "-"
+          newTodoTasks = updateTaskHelper todoTasks i taskToMarkAsDone '-'
       updateChangesToFile file newTodoTasks 
       putStrLn $ "Task #" <> show i <> " marked as 'done'."
     else putStrLn "Error: Invalid INDEX. You might want to view the list first."
 
+setFg :: Color -> Bool -> IO a -> IO a
+setFg fgColor flag action = do
+  setSGR [SetColor Foreground Vivid fgColor]
+  setSGR [SetItalicized flag]
+  res <- action
+  setSGR [Reset]
+  pure res
 
 -- Helper functions
 displayTodoHeader :: IO ()
@@ -97,12 +108,6 @@ getTodoTasks file = do
   let todoTasks = lines contents
   pure (todoTasks, length todoTasks)
 
-updateTaskHelper :: [Task] -> Index -> Task -> String -> [Task]
-updateTaskHelper todoTasks i task prefix = 
-  take (i - 1) todoTasks 
-  <> [prefix <> task]
-  <> drop i todoTasks
-
 updateChangesToFile :: FilePath -> [String] -> IO ()
 updateChangesToFile file newTodoTasks = do
   (tempFile, tempHandle) <- openTempFile "." "temp"
@@ -110,3 +115,9 @@ updateChangesToFile file newTodoTasks = do
   hClose tempHandle
   removeFile file
   renameFile tempFile file
+
+updateTaskHelper :: [Task] -> Index -> Task -> Char -> [Task]
+updateTaskHelper todoTasks i task prefix = 
+  take (i - 1) todoTasks 
+  <> [prefix : task]
+  <> drop i todoTasks
