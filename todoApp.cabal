@@ -72,7 +72,7 @@ library
     -- Other library packages from which modules are imported.
     build-depends:    base ^>=4.17.2.1
                     , directory
-                    , ansi-terminal
+                    , text-ansi
                     , optparse-applicative
 
     -- Directories containing source files.

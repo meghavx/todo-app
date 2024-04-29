@@ -2,7 +2,7 @@ module Parsers (progParser) where
 
 import Options.Applicative
 
-import Types (Command(..))
+import Types (Command(..), Index)
 
 progParser :: ParserInfo Command
 progParser = info
@@ -38,28 +38,26 @@ updateParser = Update
   <*> argument auto (metavar "INDEX") 
   <*> argument str  (metavar "TASK")
 
-bumpParser :: Parser Command
-bumpParser = Bump 
-  <$> argument str  (metavar "FILE")
-  <*> argument auto (metavar "INDEX")
-
 moveParser :: Parser Command
 moveParser = Move 
   <$> argument str  (metavar "FILE")
   <*> argument auto (metavar "FROM_INDEX") 
   <*> argument auto (metavar "TO_INDEX")
 
+bumpParser :: Parser Command
+bumpParser = fileAndIndexParser Bump
+
 removeParser :: Parser Command
-removeParser = Remove 
-  <$> argument str  (metavar "FILE") 
-  <*> argument auto (metavar "INDEX")
+removeParser = fileAndIndexParser Remove
 
 doneParser :: Parser Command
-doneParser = Done 
-  <$> argument str  (metavar "FILE")
-  <*> argument auto (metavar "INDEX")
+doneParser = fileAndIndexParser Done
 
 undoneParser :: Parser Command
-undoneParser = Undone 
+undoneParser = fileAndIndexParser Undone
+
+-- Helper function
+fileAndIndexParser :: (FilePath -> Index -> Command) -> Parser Command
+fileAndIndexParser command = command 
   <$> argument str  (metavar "FILE")
   <*> argument auto (metavar "INDEX")

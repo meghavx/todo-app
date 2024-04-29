@@ -10,16 +10,6 @@
   (major1) == 0 && (major2) <  1 || \
   (major1) == 0 && (major2) == 1 && (minor) <= 0)
 #endif /* MIN_VERSION_todoApp */
-/* package ansi-terminal-1.1.1 */
-#ifndef VERSION_ansi_terminal
-#define VERSION_ansi_terminal "1.1.1"
-#endif /* VERSION_ansi_terminal */
-#ifndef MIN_VERSION_ansi_terminal
-#define MIN_VERSION_ansi_terminal(major1,major2,minor) (\
-  (major1) <  1 || \
-  (major1) == 1 && (major2) <  1 || \
-  (major1) == 1 && (major2) == 1 && (minor) <= 1)
-#endif /* MIN_VERSION_ansi_terminal */
 /* package base-4.17.2.1 */
 #ifndef VERSION_base
 #define VERSION_base "4.17.2.1"
@@ -50,6 +40,16 @@
   (major1) == 0 && (major2) <  18 || \
   (major1) == 0 && (major2) == 18 && (minor) <= 1)
 #endif /* MIN_VERSION_optparse_applicative */
+/* package text-ansi-0.3.0.1 */
+#ifndef VERSION_text_ansi
+#define VERSION_text_ansi "0.3.0.1"
+#endif /* VERSION_text_ansi */
+#ifndef MIN_VERSION_text_ansi
+#define MIN_VERSION_text_ansi(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  3 || \
+  (major1) == 0 && (major2) == 3 && (minor) <= 0)
+#endif /* MIN_VERSION_text_ansi */
 
 /* tool gcc-11 */
 #ifndef TOOL_VERSION_gcc

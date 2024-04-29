@@ -4,15 +4,15 @@ module LibIO (
   fetchArgs, add, view, update, remove, bump, move, done, undone
 ) where
 
-import System.IO
-import System.Directory
-import Data.List (delete)
-import System.Console.ANSI
-import Data.Foldable (for_)
+import Data.Foldable       (for_)
+import Data.List           (delete)
 import Options.Applicative (execParser)
+import System.Directory    (renameFile, removeFile)
+import System.IO           (openTempFile, hPutStr, hClose)
+import String.ANSI         (bold, italic, faint, strikethrough, green)
 
-import Parsers (progParser)
-import Types (Task, Index, Command(..), Action)
+import Parsers             (progParser)
+import Types               (Task, Index, Command(..), Action)
 
 fetchArgs :: IO Command
 fetchArgs = execParser progParser
@@ -30,20 +30,25 @@ view View {..} = do
     _ -> do
       displayTodoHeader
       let numberedTasks = zip [1..n] todoTasks
-      for_ numberedTasks $ \(sno, task) -> do
-        putStr $ show sno <> "| "
-        let highlightColor = if head task == '-' then setFg Magenta True else setFg White False
-        (highlightColor . putStrLn . tail) task
+      for_ numberedTasks $ \(sNo, task) -> do
+        putStrB $ " " <> (green . show) sNo <> "| "
+        let effect = if head task == '+' then id else strikethrough . italic . faint
+        putStrLn . effect $ tail task
+  putStrLn ""
 
 update :: Action
 update Update {..} = do
   (todoTasks, n) <- getTodoTasks file
   if i > 0 && i <= n
     then do
-      let newTodoTasks = updateTaskHelper todoTasks i task '+'
-      updateChangesToFile file newTodoTasks
-      putStrLn $ "Task #" <> show i <> " updated."
-    else putStrLn "Error: Invalid INDEX. You might want to view the list first."
+      let concernedTask = todoTasks !! (i - 1)
+      if head concernedTask == '+'
+        then do 
+          let newTodoTasks = updateTaskHelper todoTasks i task '+'
+          updateChangesToFile file newTodoTasks
+          putStrLn $ "Task #" <> show i <> " updated."
+        else putStrLn $ "Updation failed since task #" <> show i <> " is marked as done / completed."
+    else displayInvalidIndexMsg
 
 remove :: Action
 remove Remove {..} = do
@@ -53,7 +58,7 @@ remove Remove {..} = do
       let newTodoTasks = delete (todoTasks !! (i - 1)) todoTasks
       updateChangesToFile file newTodoTasks
       putStrLn $ "Task #" <> show i <> " removed from the list."
-    else putStrLn "Error: Invalid INDEX. You might want to view the list first."
+    else displayInvalidIndexMsg
 
 bump :: Action
 bump Bump {..} = move (Move file i 1)
@@ -84,7 +89,7 @@ done Done {..} = do
           newTodoTasks = updateTaskHelper todoTasks i taskToMarkAsDone '-'
       updateChangesToFile file newTodoTasks 
       putStrLn $ "Task #" <> show i <> " marked as 'done'."
-    else putStrLn "Error: Invalid INDEX. You might want to view the list first."
+    else displayInvalidIndexMsg
 
 undone :: Action
 undone Undone {..} = do
@@ -97,31 +102,38 @@ undone Undone {..} = do
           let modifiedTask = delete '-' concernedTask
               newTodoTasks = updateTaskHelper todoTasks i modifiedTask '+'
           updateChangesToFile file newTodoTasks
-          putStrLn $ "Task #" <> show i <> " restored as undone / yet to be completed."
+          putStrLn $ 
+            "Task #" <> show i <> " restored as undone / yet to be completed."
         else putStrLn $ "Task #" <> show i <> " is yet to be marked as 'done'; hence is already in the 'undone' state."
-    else putStrLn "Error: Invalid INDEX. You might want to view the list first."
-
-setFg :: Color -> Bool -> IO a -> IO a
-setFg fgColor flag action = do
-  setSGR [SetColor Foreground Vivid fgColor]
-  setSGR [SetItalicized flag]
-  res <- action
-  setSGR [Reset]
-  pure res
+    else displayInvalidIndexMsg
 
 -- Helper functions
 displayTodoHeader :: IO ()
 displayTodoHeader = do
-  putStrLn "\t ____________ "
-  putStrLn "\t|            |"
-  putStrLn "\t| TODO Tasks |"
-  putStrLn "\t|____________|\n"
+  putStrBLn       "\t ____________ "
+  putStrBLn       "\t|            |"
+  putStrB         "\t|"
+  putStrB . green $  " TODO Tasks "
+  putStrBLn                      "|"
+  putStrBLn       "\t|____________|\n"
+
+putStrB :: String -> IO ()
+putStrB = putStr . bold
+
+putStrBLn :: String -> IO ()
+putStrBLn = putStrLn . bold
 
 getTodoTasks :: FilePath -> IO ([String], Int)
 getTodoTasks file = do
   contents <- readFile file
   let todoTasks = lines contents
   pure (todoTasks, length todoTasks)
+
+updateTaskHelper :: [Task] -> Index -> Task -> Char -> [Task]
+updateTaskHelper todoTasks i task prefix = 
+  take (i - 1) todoTasks 
+  <> [prefix : task]
+  <> drop i todoTasks
 
 updateChangesToFile :: FilePath -> [String] -> IO ()
 updateChangesToFile file newTodoTasks = do
@@ -131,8 +143,6 @@ updateChangesToFile file newTodoTasks = do
   removeFile file
   renameFile tempFile file
 
-updateTaskHelper :: [Task] -> Index -> Task -> Char -> [Task]
-updateTaskHelper todoTasks i task prefix = 
-  take (i - 1) todoTasks 
-  <> [prefix : task]
-  <> drop i todoTasks
+displayInvalidIndexMsg :: IO ()
+displayInvalidIndexMsg = 
+  putStrLn "Error: Invalid INDEX. You might want to view the list first."
