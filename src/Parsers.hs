@@ -26,7 +26,6 @@ commandParser = hsubparser $
 addParser :: Parser Command
 addParser = Add 
   <$> argument str (metavar "FILE") 
-  <*> argument str (metavar "TASK")
 
 viewParser :: Parser Command
 viewParser = View 
@@ -55,6 +54,6 @@ moveParser = Move
 
 -- Helper function
 fileAndIndexParser :: (FilePath -> Index -> Command) -> Parser Command
-fileAndIndexParser command = command 
+fileAndIndexParser cmd = cmd 
   <$> argument str  (metavar "FILE")
   <*> argument auto (metavar "INDEX")

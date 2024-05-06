@@ -8,8 +8,8 @@ putStrBold = putStr . bold
 putStrBoldLn :: String -> IO ()
 putStrBoldLn = putStrLn . bold
 
-putStrItalicFaintLn :: String -> IO ()
-putStrItalicFaintLn = putStrLn . italic . faint . green
+putStrItalicFaintGreenLn :: String -> IO ()
+putStrItalicFaintGreenLn = putStrLn . italic . faint . green
 
 putStrBoldGreen :: String -> IO () 
 putStrBoldGreen = putStrBold . green

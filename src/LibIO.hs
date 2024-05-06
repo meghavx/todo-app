@@ -1,30 +1,40 @@
-{-# LANGUAGE RecordWildCards #-}
-
-module LibIO (
-  fetchArgs, add, view, update, bump, move, done, undone, remove
-) where
+module LibIO (fetchArgs, handle) where
 
 import           Data.Foldable       (for_)
+import           Control.Monad       (when)
 import           Options.Applicative (execParser)
 import           System.Process      (callCommand)
 import           Data.List           (delete, dropWhileEnd)
 import           System.Directory    (renameFile, removeFile)
 import           System.IO           (openTempFile, hPutStr, hClose)
 
-import           Parsers             (progParser)
-import           Types               (Task, Index, Command(..), Action)
 import qualified VisualEffects       as VE
+import           Parsers             (progParser)
+import           Types               (Task, Index, Command(..))
 
 fetchArgs :: IO Command
 fetchArgs = execParser progParser
 
-add :: Action
-add Add {..} = do
-  appendFile file $ "+" <> task <> "\n"
-  VE.successFeedback "Task added to the list."
+handle :: Command -> IO ()
+handle cmd = case cmd of
+  Add    file     -> add    file 
+  View   file     -> view   file
+  Update file i   -> update file i
+  Remove file i   -> remove file i
+  Bump   file i   -> bump   file i
+  Move   file i j -> move   file i j
+  Done   file i   -> done   file i
+  Undone file i   -> undone file i
 
-view :: Action
-view View {..} = do
+add :: FilePath -> IO ()
+add file = do
+  task <- editWithNano ""
+  when (not $ null task) $ do
+    appendFile file $ "+" <> task <> "\n"
+    VE.successFeedback "Task added to the list."
+
+view :: FilePath -> IO ()
+view file = do
   (todoTasks, n) <- getTodoTasks file
   case n of
     0 -> VE.exceptionFeedback "Turns out your TODO list is empty!"
@@ -32,13 +42,13 @@ view View {..} = do
       displayTodoHeader
       let numberedTasks = zip [1..n] todoTasks
       for_ numberedTasks $ \(sNo, task) -> do
-        VE.putStrBold " " >> VE.putStrBoldGreen (show sNo) >> VE.putStrBold "| "
+        VE.putStrBold " " >> VE.putStrBoldGreen (show sNo) >> VE.putStrBold " "
         let effect = if head task == '+' then id else VE.strikethroughEffect
         putStrLn . effect $ tail task
-  VE.putStrItalicFaintLn $ "\n\n File location: " <> file <> "\n"
+  VE.putStrItalicFaintGreenLn $ "\n\n File location: " <> file <> "\n"
 
-update :: Action
-update Update {..} = do
+update :: FilePath -> Index -> IO ()
+update file i = do
   (todoTasks, n) <- getTodoTasks file
   if i > 0 && i <= n
     then do
@@ -46,8 +56,7 @@ update Update {..} = do
       if head concernedTask == '+'
         then do
           editedTask <- editWithNano (tail concernedTask)
-          let strippedEditedTask = dropWhileEnd (== '\n') editedTask
-              newTodoTasks = updateTaskHelper todoTasks i strippedEditedTask '+'
+          let newTodoTasks = updateTaskHelper todoTasks i editedTask '+'
           updateChangesToFile file newTodoTasks
           VE.successFeedback $ "Task #" <> show i <> " updated."
         else do
@@ -55,11 +64,11 @@ update Update {..} = do
           VE.exceptionFeedback "Please recheck the INDEX entered OR try marking this task 'undone' first."
     else VE.errorFeedback "Invalid INDEX provided! Please view the list first."
 
-bump :: Action
-bump Bump {..} = move (Move file i 1)
+bump :: FilePath -> Index -> IO ()
+bump file i = move file i 1
 
-move :: Action
-move Move {..} = do
+move :: FilePath -> Index -> Index -> IO ()
+move file i j = do
   (todoTasks, n) <- getTodoTasks file
   if i > 0 && i <= n && j > 0 && j <= n
     then do
@@ -75,8 +84,8 @@ move Move {..} = do
           VE.successFeedback $ "Task #" <> show i <> " moved to #" <> show j <> "."
     else VE.errorFeedback "One or both INDEXES are invalid. Please view the list first."
 
-done :: Action
-done Done {..} = do 
+done :: FilePath -> Index -> IO ()
+done file i = do 
   (todoTasks, n) <- getTodoTasks file
   if i > 0 && i <= n
     then do
@@ -91,8 +100,8 @@ done Done {..} = do
           VE.exceptionFeedback $ "Task #" <> show i <> " is already marked as 'done'"
     else VE.errorFeedback "Invalid INDEX provided! Please view the list first."
 
-undone :: Action
-undone Undone {..} = do
+undone :: FilePath -> Index -> IO ()
+undone file i = do
   (todoTasks, n) <- getTodoTasks file
   if i > 0 && i <= n
     then do
@@ -107,8 +116,8 @@ undone Undone {..} = do
           VE.exceptionFeedback $ "Task #" <> show i <> " is already in 'undone' state."
     else VE.errorFeedback "Invalid INDEX provided! Please view the list first."
 
-remove :: Action
-remove Remove {..} = do
+remove :: FilePath -> Index -> IO ()
+remove file i = do
   (todoTasks, n) <- getTodoTasks file
   if i > 0 && i <= n
     then do
@@ -154,4 +163,5 @@ editWithNano initialText = do
     _ <- callCommand $ "nano " ++ tempFile
     editedText <- readFile tempFile
     removeFile tempFile
-    pure editedText
+    let editedText' = dropWhileEnd (== '\n') editedText
+    pure editedText'
