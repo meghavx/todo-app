@@ -2,8 +2,6 @@ module Types where
 
 type Index = Int
 
-type Task = String
-
 data Command
   = Add    FilePath
   | View   FilePath 

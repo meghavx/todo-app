@@ -1,27 +1,29 @@
 module VisualEffects where
 
-import String.ANSI
+import Text.ANSI
+import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
 
-putStrBold :: String -> IO ()
-putStrBold = putStr . bold
+putStrBold :: T.Text -> IO ()
+putStrBold = TIO.putStr . bold
 
-putStrBoldLn :: String -> IO ()
-putStrBoldLn = putStrLn . bold
+putStrBoldLn :: T.Text -> IO ()
+putStrBoldLn = TIO.putStrLn . bold
 
-putStrItalicFaintGreenLn :: String -> IO ()
-putStrItalicFaintGreenLn = putStrLn . italic . faint . green
+putStrItalicFaintGreenLn :: T.Text -> IO ()
+putStrItalicFaintGreenLn = TIO.putStrLn . italic . faint . green
 
-putStrBoldGreen :: String -> IO () 
+putStrBoldGreen :: T.Text -> IO () 
 putStrBoldGreen = putStrBold . green
 
-successFeedback :: String -> IO ()
-successFeedback = putStrLn . green
+successFeedback :: T.Text -> IO ()
+successFeedback = TIO.putStrLn . green
 
-exceptionFeedback :: String -> IO ()
-exceptionFeedback = putStrLn . magenta
+exceptionFeedback :: T.Text -> IO ()
+exceptionFeedback = TIO.putStrLn . magenta
 
-errorFeedback :: String -> IO ()
-errorFeedback = putStrLn . red
+errorFeedback :: T.Text -> IO ()
+errorFeedback = TIO.putStrLn . red
 
-strikethroughEffect :: String -> String
+strikethroughEffect :: T.Text -> T.Text
 strikethroughEffect = strikethrough . italic . faint

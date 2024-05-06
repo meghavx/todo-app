@@ -14,14 +14,14 @@ progParser = info
 
 commandParser :: Parser Command
 commandParser = hsubparser $
-  command "add"    (info addParser    (progDesc "Add a task")) <>
+  command "add"    (info addParser    (progDesc "Add task")) <>
   command "view"   (info viewParser   (progDesc "View all tasks")) <>
-  command "update" (info updateParser (progDesc "Update a task")) <>
-  command "bump"   (info bumpParser   (progDesc "Bump a task to the top")) <>
-  command "move"   (info moveParser   (progDesc "Move a task to a different position")) <>
-  command "done"   (info doneParser   (progDesc "Mark a task as 'done'")) <>
-  command "undone" (info undoneParser (progDesc "Unmark a task previously marked as 'done'")) <>
-  command "remove" (info removeParser (progDesc "Remove a task"))
+  command "update" (info updateParser (progDesc "Update task")) <>
+  command "bump"   (info bumpParser   (progDesc "Bump task to the top")) <>
+  command "move"   (info moveParser   (progDesc "Move task to a different position")) <>
+  command "done"   (info doneParser   (progDesc "Mark task as 'done'")) <>
+  command "undone" (info undoneParser (progDesc "Unmark task previously marked as 'done'")) <>
+  command "remove" (info removeParser (progDesc "Remove task"))
 
 addParser :: Parser Command
 addParser = Add 
