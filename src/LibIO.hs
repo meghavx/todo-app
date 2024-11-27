@@ -1,32 +1,31 @@
 module LibIO (fetchArgs, handle) where
 
-import qualified Data.Text           as T
-import qualified Data.Text.IO        as TIO
-import           Data.Foldable       (for_)
-import           Control.Monad       (when)
-import           Options.Applicative (execParser)
-import           System.Process      (callCommand)
-import           Data.List           (delete)
-import           System.IO           (openTempFile, hClose)
-import           System.Directory    (renameFile, removeFile)     
-
-import qualified VisualEffects       as VE
-import           Parsers             (progParser)
-import           Types               (Command(..), Index)
+import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
+import Data.Foldable (for_)
+import Control.Monad (when)
+import Options.Applicative (execParser)
+import System.Process (callCommand)
+import Data.List (delete)
+import System.IO (openTempFile, hClose)
+import System.Directory (renameFile, removeFile)     
+import qualified VisualEffects as VE
+import Parsers (progParser)
+import Types (Command(..), Index)
 
 fetchArgs :: IO Command
 fetchArgs = execParser progParser
 
 handle :: Command -> IO ()
 handle cmd = case cmd of
-  Add    file     -> add    file 
-  View   file     -> view   file
-  Update file i   -> update file i
-  Remove file i   -> remove file i
-  Bump   file i   -> bump   file i
-  Move   file i j -> move   file i j
-  Done   file i   -> done   file i
-  Undone file i   -> undone file i
+  Add file -> add file 
+  View file -> view file
+  Update file i -> update file i
+  Remove file i -> remove file i
+  Bump file i -> bump file i
+  Move file i j -> move file i j
+  Done file i -> done file i
+  Undone file i -> undone file i
 
 add :: FilePath -> IO ()
 add file = do
@@ -123,13 +122,7 @@ remove file i = do
 
 -- Helper functions
 displayTodoHeader :: IO ()
-displayTodoHeader = do
-  VE.putStrBoldLn    $ T.pack "\t ____________ "
-  VE.putStrBoldLn    $ T.pack "\t|            |"
-  VE.putStrBold      $ T.pack "\t|"
-  VE.putStrBoldGreen $ T.pack    " TODO Tasks "
-  VE.putStrBoldLn    $ T.pack                "|"
-  VE.putStrBoldLn    $ T.pack "\t|____________|\n"
+displayTodoHeader = VE.putStrBoldGreen $ T.pack "\n TO-DO\n\n"
 
 getTodoTasks :: FilePath -> IO ([T.Text], Int)
 getTodoTasks file = do
